@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "ctf-ops": {
+      "type": "stdio",
+      "command": "pnpm",
+      "args": [
+        "--silent",
+        "--prefix",
+        "web-app",
+        "mcp"
+      ],
+      "env": {}
+    }
+  }
+}

@@ -1,0 +1,31 @@
+migrations/
+node_modules/
+.next/
+.venv/
+
+# Competition loot data (contains extracted credentials, keys, PII)
+loots/
+
+# Operations database (contains real competition data)
+*.db
+*.sqlite
+
+# Large wordlists (download separately)
+tools/wordlists/rockyou.txt
+
+# Pre-compiled binaries (download separately)
+tools/bins/linux-amd64/
+tools/bins/linux-arm64/
+tools/bins/windows-amd64/
+tools/bins/darwin-arm64/
+
+# Agent state (contains live competition data)
+.agents/state/active_objective.json
+.agents/state/dispatch-board.json
+
+# Build artifacts
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store

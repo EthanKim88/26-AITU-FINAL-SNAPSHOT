@@ -1,0 +1,28 @@
+## Description
+{{description}}
+
+The replay script for this report is `python3 steps.py`. It reproduces the {{chain_kind}} below and saves any supporting artifacts in this directory.
+
+## Step 1 - {{step_1_title}}
+- {{step_1_summary}}
+- Relevant URL or command: `{{step_1_command_or_url}}`
+
+Output:
+
+```text
+{{step_1_key_output}}
+```
+
+## Step 2 - {{step_2_title}}
+- {{step_2_summary}}
+- Relevant URL, request, or artifact: `{{step_2_command_or_url}}`
+
+Output:
+
+```text
+{{step_2_key_output}}
+```
+
+## Result
+- {{result_line_1}}
+- {{result_line_2}}

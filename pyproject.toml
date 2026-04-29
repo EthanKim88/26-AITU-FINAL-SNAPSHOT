@@ -1,0 +1,45 @@
+[project]
+name = "aituctf-26-final"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "impacket>=0.12",
+    "bloodhound>=1.7",
+    "netexec @ git+https://github.com/Pennyw0rth/NetExec.git",
+    "certipy-ad>=4.8",
+    "adidnsdump>=0.7",
+    "smbmap>=1.9",
+    "pymodbus>=3.6",
+    "sshuttle>=1.1",
+    "enum4linux-ng @ git+https://github.com/cddmp/enum4linux-ng.git",
+    "python-nmap>=0.7",
+    "click>=8.0",
+    "rich>=13.0",
+    "requests>=2.31",
+    "asyncua>=1.1.8",
+    "python-snap7>=3.0.0",
+    "scapy>=2.7.0",
+    "paho-mqtt>=2.1.0",
+    "cpppo>=5.2.5",
+    "pycomm3>=1.2.16",
+    "mitm6>=0.3.0",
+    "pymetasploit3>=1.0.6",
+    # Web / DMZ
+    "flask-unsign>=1.2",
+    "beautifulsoup4>=4.12",
+    "lxml>=5.0",
+    "httpx>=0.27",
+    # AD
+    "coercer>=2.4",
+    "lsassy>=3.1",
+    "dploot>=3.0",
+    "ldapdomaindump>=0.9",
+    "masky>=0.2",
+    # Credential
+    "pypykatz>=0.6",
+    "dsinternals>=1.2",
+    # Network
+    "dnspython>=2.6",
+]

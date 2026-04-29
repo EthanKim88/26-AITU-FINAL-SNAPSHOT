@@ -1,0 +1,32 @@
+{
+  "host": "198.18.0.21",
+  "port": 4840,
+  "endpoints": [
+    {
+      "url": "opc.tcp://198.18.0.21:4840",
+      "security_mode": "None",
+      "security_policy": "None"
+    }
+  ],
+  "nodes": [
+    {
+      "node_id": "ns=2;s=LRT/Operations/LineA/Status",
+      "name": "2:LRT_LineA_Status",
+      "value": "HALTED",
+      "type": "String"
+    },
+    {
+      "node_id": "ns=2;s=BusinessCenter/Power/State",
+      "name": "2:BusinessCenter_Power_State",
+      "value": "DISABLED",
+      "type": "String"
+    },
+    {
+      "node_id": "ns=2;s=BusinessCenter/Power/LoadKW",
+      "name": "2:BusinessCenter_LoadKW",
+      "value": 0,
+      "type": "Int32"
+    }
+  ],
+  "node_count": 3
+}

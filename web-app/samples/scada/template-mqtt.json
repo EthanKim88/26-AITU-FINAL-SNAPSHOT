@@ -1,0 +1,31 @@
+{
+  "host": "198.18.0.23",
+  "port": 1883,
+  "topics": [
+    "transport/lrt/command",
+    "power/business-center/command",
+    "operations/safety/state"
+  ],
+  "topic_count": 3,
+  "message_count": 3,
+  "messages_sample": [
+    {
+      "topic": "transport/lrt/command",
+      "payload": "halt_line_a",
+      "qos": 1,
+      "retain": false
+    },
+    {
+      "topic": "power/business-center/command",
+      "payload": "disable_main_feeder",
+      "qos": 1,
+      "retain": false
+    },
+    {
+      "topic": "operations/safety/state",
+      "payload": "emergency_mode_active",
+      "qos": 0,
+      "retain": true
+    }
+  ]
+}

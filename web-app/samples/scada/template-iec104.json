@@ -1,0 +1,23 @@
+{
+  "host": "198.18.0.26",
+  "port": 2404,
+  "startdt": true,
+  "response_count": 2,
+  "total_bytes": 128,
+  "data_points": [
+    {
+      "type_id": 9,
+      "num_objects": 1,
+      "cot": 3,
+      "raw": "090103",
+      "ascii": "LRT_LINE_A=HALTED"
+    },
+    {
+      "type_id": 36,
+      "num_objects": 1,
+      "cot": 3,
+      "raw": "240103",
+      "ascii": "BUSINESS_CENTER_FEEDER=OPEN"
+    }
+  ]
+}

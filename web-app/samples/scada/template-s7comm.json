@@ -1,0 +1,20 @@
+{
+  "host": "198.18.0.22",
+  "port": 102,
+  "rack": 0,
+  "slot": 1,
+  "cpu_info": {
+    "module_type": "CPU 1511-1 PN",
+    "serial": "S7SERIAL001",
+    "as_name": "S7-PLANT",
+    "module_name": "S7-1500"
+  },
+  "cpu_state": "RUN",
+  "dbs": {
+    "1": {
+      "size": 96,
+      "hex": "4c52545f4c494e455f413d48414c5445443b20425553494e4553535f43454e5445525f504f5745523d44495341424c4544",
+      "ascii": "LRT_LINE_A=HALTED; BUSINESS_CENTER_POWER=DISABLED"
+    }
+  }
+}

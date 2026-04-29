@@ -1,0 +1,32 @@
+{
+  "host": "198.18.0.27",
+  "port": 47808,
+  "who_is": [
+    {
+      "ip": "198.18.0.27",
+      "raw_hex": "810b0040",
+      "size": 64,
+      "note": "I-Am response detected"
+    }
+  ],
+  "objects": [
+    {
+      "type": "analog-input",
+      "instance": 1,
+      "name": "BusinessCenterLoadKW",
+      "raw": "00000000"
+    },
+    {
+      "type": "binary-value",
+      "instance": 7,
+      "name": "BusinessCenterPowerDisabled",
+      "raw": "01"
+    },
+    {
+      "type": "binary-value",
+      "instance": 8,
+      "name": "LRTLineAServiceHalted",
+      "raw": "01"
+    }
+  ]
+}

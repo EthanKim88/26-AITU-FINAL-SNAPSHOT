@@ -1,0 +1,18 @@
+{
+  "host": "198.18.0.25",
+  "port": 20000,
+  "active_addresses": [
+    1
+  ],
+  "class0": {
+    "status": "responded",
+    "raw": "4c52545f4c494e455f413d48414c5445443b2042435f4645454445523d4f50454e",
+    "ascii": "LRT_LINE_A=HALTED; BC_FEEDER=OPEN",
+    "size": 64
+  },
+  "class123": {
+    "status": "responded",
+    "raw": "0102030405",
+    "size": 5
+  }
+}

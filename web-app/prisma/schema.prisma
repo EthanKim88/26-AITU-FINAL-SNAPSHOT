@@ -1,0 +1,649 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ─────────────────────────────────────────────────────────
+// SETTINGS (key-value)
+// ─────────────────────────────────────────────────────────
+
+model Setting {
+  key       String   @id
+  value     String   @default("")
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────────────────
+// NETWORK SEGMENT
+// ─────────────────────────────────────────────────────────
+
+model NetworkSegment {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  cidr        String  @default("")
+  description String  @default("")
+  order       Int     @default(0)
+  reachable   Boolean @default(false)
+  scope       String  @default("global")
+  ownerHostId String?
+  ownerHost   Host?   @relation("SegmentOwner", fields: [ownerHostId], references: [id], onDelete: SetNull)
+
+  hostLinks HostSegment[]
+  pivotFrom PivotRoute[] @relation("PivotFrom")
+  pivotTo   PivotRoute[] @relation("PivotTo")
+
+  @@unique([scope, ownerHostId, cidr])
+  @@index([scope])
+  @@index([ownerHostId])
+}
+
+model HostSegment {
+  id        String         @id @default(cuid())
+  hostId    String
+  host      Host           @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  segmentId String
+  segment   NetworkSegment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+
+  ip String @default("")
+
+  @@unique([hostId, segmentId])
+  @@index([hostId])
+  @@index([segmentId])
+}
+
+model PivotRoute {
+  id            String          @id @default(cuid())
+  fromSegmentId String
+  fromSegment   NetworkSegment  @relation("PivotFrom", fields: [fromSegmentId], references: [id])
+  toSegmentId   String
+  toSegment     NetworkSegment  @relation("PivotTo", fields: [toSegmentId], references: [id])
+  pivotHostId   String
+  pivotHost     Host            @relation(fields: [pivotHostId], references: [id])
+  credentialId  String?
+  credential    Credential?     @relation(fields: [credentialId], references: [id])
+  protocol      String          @default("ssh")
+  port          Int             @default(22)
+  status        String          @default("active")
+  notes         String          @default("")
+  createdAt     DateTime        @default(now())
+
+  @@index([fromSegmentId])
+  @@index([toSegmentId])
+}
+
+// ─────────────────────────────────────────────────────────
+// HOST + PORT
+// ─────────────────────────────────────────────────────────
+
+model Host {
+  id         String   @id @default(cuid())
+  ip         String   @unique
+  hostname   String   @default("")
+  os         String   @default("")
+  osVersion  String   @default("")
+  domain     String   @default("")
+  status     String   @default("up")
+  smbSigning Boolean?
+  isDc       Boolean  @default(false)
+  notes      String   @default("")
+  scanTime   DateTime @default(now())
+
+  segments    HostSegment[]
+  ports       Port[]
+  accesses    CredentialAccess[]
+  flags       Flag[]
+  checklists  AttackChecklist[]
+  pivotRoutes PivotRoute[]
+  routes      HostRoute[]
+  loot        Loot[]
+  ownedSegments NetworkSegment[] @relation("SegmentOwner")
+}
+
+model HostRoute {
+  id     String @id @default(cuid())
+  hostId String
+  host   Host   @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
+  destination String
+  gateway     String   @default("")
+  iface       String   @default("")
+  srcIp       String   @default("")
+  connectedIp String   @default("")
+  metric      Int?
+  isDefault   Boolean  @default(false)
+  isConnected Boolean  @default(false)
+  source      String   @default("")
+  raw         String   @default("")
+  notes       String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([hostId, destination, gateway, iface, srcIp, connectedIp])
+  @@index([hostId])
+  @@index([destination])
+  @@index([iface])
+}
+
+model Port {
+  id     String @id @default(cuid())
+  hostId String
+  host   Host   @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
+  port     Int
+  state    String @default("open")
+  protocol String @default("tcp")
+  service  String @default("")
+  version  String @default("")
+  banner   String @default("")
+
+  @@unique([hostId, port, protocol])
+  @@index([hostId])
+}
+
+// ─────────────────────────────────────────────────────────
+// CREDENTIALS
+// ─────────────────────────────────────────────────────────
+
+model Credential {
+  id            String   @id @default(cuid())
+  username      String
+  secret        String   @default("")
+  secretType    String   @default("password")
+  credType      String   @default("unknown")
+  domain        String   @default("")
+  linkedService String   @default("")
+  source        String   @default("")
+  notes         String   @default("")
+  createdAt     DateTime @default(now())
+
+  accesses    CredentialAccess[]
+  pivotRoutes PivotRoute[]
+
+  @@index([credType])
+}
+
+model CredentialAccess {
+  id           String     @id @default(cuid())
+  credentialId String
+  credential   Credential @relation(fields: [credentialId], references: [id], onDelete: Cascade)
+  hostId       String
+  host         Host       @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
+  protocol String  @default("smb")
+  port     Int?
+  status   String  @default("untested")
+  isAdmin  Boolean @default(false)
+  testedAt DateTime?
+  notes    String  @default("")
+
+  @@unique([credentialId, hostId, protocol, port])
+  @@index([credentialId])
+  @@index([hostId])
+  @@index([status])
+}
+
+// ─────────────────────────────────────────────────────────
+// FLAGS
+// ─────────────────────────────────────────────────────────
+
+model Flag {
+  id       String   @id @default(cuid())
+  value    String   @unique
+  source   String   @default("")
+  hostId   String?
+  host     Host?    @relation(fields: [hostId], references: [id], onDelete: SetNull)
+  category String   @default("")
+  points   Int      @default(0)
+  status   String   @default("pending")
+  notes    String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([hostId])
+  @@index([status])
+}
+
+// ─────────────────────────────────────────────────────────
+// EVENT (TIMELINE)
+// ─────────────────────────────────────────────────────────
+
+model Event {
+  id        String   @id @default(cuid())
+  type      String
+  category  String   @default("general")
+  source    String   @default("")
+  message   String
+  data      String   @default("{}")
+  host      String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@index([category])
+  @@index([createdAt])
+}
+
+// ─────────────────────────────────────────────────────────
+// ACTIVE DIRECTORY
+// ─────────────────────────────────────────────────────────
+
+model AdDomain {
+  id              String @id @default(cuid())
+  domainName      String @unique
+  dcIp            String @default("")
+  functionalLevel String @default("")
+  forestLevel     String @default("")
+  dcLevel         String @default("")
+  dnsHostname     String @default("")
+  serverName      String @default("")
+
+  passwordPolicy        String @default("{}")
+  smbShares             String @default("[]")
+  dnsRecords            String @default("[]")
+  ous                   String @default("[]")
+  attackRecommendations String @default("[]")
+  errors                String @default("[]")
+
+  scanTime DateTime @default(now())
+
+  users     AdUser[]
+  groups    AdGroup[]
+  computers AdComputer[]
+  trusts    AdTrust[]
+  gpos      AdGpo[]
+}
+
+model AdUser {
+  id       String   @id @default(cuid())
+  domainId String
+  domain   AdDomain @relation(fields: [domainId], references: [id], onDelete: Cascade)
+
+  username                    String
+  description                 String  @default("")
+  dn                          String  @default("")
+  groups                      String  @default("[]")
+  flags                       String  @default("[]")
+  spn                         String  @default("[]")
+  kerberoastable              Boolean @default(false)
+  asrepRoastable              Boolean @default(false)
+  adminCount                  Boolean @default(false)
+  lastLogon                   String  @default("")
+  pwdLastSet                  String  @default("")
+  constrainedDelegationTargets String @default("[]")
+  email                       String  @default("")
+
+  @@unique([domainId, username])
+  @@index([domainId])
+  @@index([kerberoastable])
+  @@index([asrepRoastable])
+  @@index([adminCount])
+}
+
+model AdGroup {
+  id       String   @id @default(cuid())
+  domainId String
+  domain   AdDomain @relation(fields: [domainId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String @default("")
+  dn          String @default("")
+  members     String @default("[]")
+  memberCount Int    @default(0)
+  groupType   String @default("")
+
+  @@unique([domainId, name])
+  @@index([domainId])
+}
+
+model AdComputer {
+  id       String   @id @default(cuid())
+  domainId String
+  domain   AdDomain @relation(fields: [domainId], references: [id], onDelete: Cascade)
+
+  name                    String
+  dnsHostname             String  @default("")
+  os                      String  @default("")
+  osVersion               String  @default("")
+  osServicePack           String  @default("")
+  flags                   String  @default("[]")
+  dn                      String  @default("")
+  isDc                    Boolean @default(false)
+  unconstrainedDelegation Boolean @default(false)
+  constrainedDelegation   String  @default("[]")
+  rbcd                    Boolean @default(false)
+
+  @@unique([domainId, name])
+  @@index([domainId])
+  @@index([isDc])
+}
+
+model AdTrust {
+  id       String   @id @default(cuid())
+  domainId String
+  domain   AdDomain @relation(fields: [domainId], references: [id], onDelete: Cascade)
+
+  name      String
+  direction String @default("Unknown")
+  trustType String @default("Unknown")
+  flatName  String @default("")
+
+  @@unique([domainId, name])
+  @@index([domainId])
+}
+
+model AdGpo {
+  id       String   @id @default(cuid())
+  domainId String
+  domain   AdDomain @relation(fields: [domainId], references: [id], onDelete: Cascade)
+
+  displayName String
+  name        String @default("")
+  path        String @default("")
+
+  @@unique([domainId, name])
+  @@index([domainId])
+}
+
+// ─────────────────────────────────────────────────────────
+// SCADA
+// ─────────────────────────────────────────────────────────
+
+model ScadaDevice {
+  id          String   @id @default(cuid())
+  host        String
+  port        Int      @default(502)
+  unitId      Int      @default(1)
+  protocol    String   @default("modbus")
+  vendorName  String   @default("")
+  productCode String   @default("")
+  revision    String   @default("")
+  productName String   @default("")
+  modelName   String   @default("")
+  description String   @default("")
+  deviceType  String   @default("unknown")
+  scanTime    DateTime @default(now())
+
+  registers ScadaRegister[]
+
+  @@unique([host, port, unitId])
+  @@index([protocol])
+}
+
+model ScadaRegister {
+  id       String      @id @default(cuid())
+  deviceId String
+  device   ScadaDevice @relation(fields: [deviceId], references: [id], onDelete: Cascade)
+
+  registerType String
+  address      Int
+  rawValue     Int     @default(0)
+  decodedValue String  @default("")
+  hexValue     String  @default("")
+  isNonZero    Boolean @default(false)
+  isFlagMatch  Boolean @default(false)
+  lastUpdated  DateTime @default(now())
+
+  @@unique([deviceId, registerType, address])
+  @@index([deviceId])
+  @@index([isNonZero])
+  @@index([isFlagMatch])
+}
+
+// ─────────────────────────────────────────────────────────
+// LOOT (extracted files: source code, DB dumps, configs)
+// ─────────────────────────────────────────────────────────
+
+model Loot {
+  id        String   @id @default(cuid())
+  hostId    String?
+  host      Host?    @relation(fields: [hostId], references: [id], onDelete: SetNull)
+
+  lootType  String   @default("file")   // db-dump, config, source-code, credential-file, smb-file, ldap-dump, other
+  filename  String                       // display name (e.g. "config.php.bak")
+  localPath String                       // relative path under loots/ (e.g. "10.1.2.10/80/config.php.bak")
+  port      Int?                            // service port (e.g. 80, 502). null = host-level loot
+  source    String   @default("")        // where it was obtained (e.g. "http://10.1.2.10/config/config.php.bak")
+  size      Int      @default(0)         // file size in bytes
+  notes     String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([hostId])
+  @@index([lootType])
+}
+
+// ─────────────────────────────────────────────────────────
+// NOTES
+// ─────────────────────────────────────────────────────────
+
+model Note {
+  id        String   @id @default(cuid())
+  content   String
+  tags      String   @default("")
+  host      String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
+// ─────────────────────────────────────────────────────────
+// ATTACK CHECKLIST
+// ─────────────────────────────────────────────────────────
+
+model AttackChecklist {
+  id         String  @id @default(cuid())
+  hostId     String?
+  host       Host?   @relation(fields: [hostId], references: [id], onDelete: SetNull)
+
+  hostIp     String  @default("")
+
+  // Phase status: pending | in-progress | done | skipped
+  enumStatus      String @default("pending")
+  exploitStatus   String @default("pending")
+  privescStatus   String @default("pending")
+  flagStatus      String @default("pending")
+
+  // Phase start/completion timestamps
+  enumStartedAt      DateTime?
+  enumCompletedAt    DateTime?
+  exploitStartedAt   DateTime?
+  exploitCompletedAt DateTime?
+  privescStartedAt   DateTime?
+  privescCompletedAt DateTime?
+  flagStartedAt      DateTime?
+  flagCompletedAt    DateTime?
+
+  // Assigned session
+  sessionId  Int?
+  session    AiSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  notes      String  @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([hostId])
+  @@index([sessionId])
+}
+
+// ─────────────────────────────────────────────────────────
+// AI SESSIONS & TASKS
+// ─────────────────────────────────────────────────────────
+
+model AiSession {
+  id            Int      @id @default(autoincrement())
+  title         String
+  status        String   @default("active") // active, paused, completed, stale
+  goal          String?
+  summary       String?
+  lastHeartbeat DateTime @default(now()) // updated by heartbeat tool — used for stale detection
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  entries    AiSessionEntry[]
+  tasks      TaskRequest[]
+  checklists AttackChecklist[]
+  actions    ActionItem[]
+}
+
+model AiSessionEntry {
+  id        String    @id @default(cuid())
+  sessionId Int
+  session   AiSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  seq       Int
+  type      String // action, analysis, request, result, decision, note
+  content   String
+  data      String?
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([sessionId, seq])
+}
+
+model TaskRequest {
+  id             String     @id @default(cuid())
+  type           String // scan, crack, exploit, spray, collect, manual
+  priority       String     @default("medium") // critical, high, medium, low
+  status         String     @default("pending") // pending, in-progress, done, skipped
+  title          String
+  command        String?
+  context        String?
+  expectedOutput String?
+  result         String?
+  hostIp         String?
+  sessionId      Int?
+  session        AiSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([status])
+  @@index([sessionId])
+}
+
+// ─────────────────────────────────────────────────────────
+// ACTION QUEUE — tracks generated, claimed, completed actions
+// ─────────────────────────────────────────────────────────
+
+model ActionItem {
+  id          String   @id @default(cuid())
+
+  // What to do
+  priority    String   @default("medium") // critical, high, medium, low
+  action      String   // short description (e.g. "Modbus enum on 10.1.4.5:502")
+  reason      String   @default("") // why this was generated
+  category    String   @default("recon") // recon, exploit, credential, pivot, flag, scada, ad, web, db
+  target      String?  // target IP or identifier
+  context     String   @default("{}") // JSON object: factual data about the target (ports, services, creds, host info)
+
+  // Dedup: prevents the same action from being generated twice
+  fingerprint String   @unique
+
+  // Lifecycle
+  status      String   @default("pending") // pending, in_progress, done, failed, expired
+  sessionId   Int?     // which Claude session claimed this
+  session     AiSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  result      String?  // outcome summary after completion
+
+  createdAt   DateTime @default(now())
+  claimedAt   DateTime?
+  completedAt DateTime?
+
+  @@index([status])
+  @@index([priority])
+  @@index([sessionId])
+  @@index([category])
+  @@index([target])
+}
+
+// ─────────────────────────────────────────────────────────
+// SCAN JOBS
+// ─────────────────────────────────────────────────────────
+
+model ScanJob {
+  id         String    @id @default(cuid())
+  scriptType String
+  command    String    @default("")
+  args       String    @default("{}")
+  status     String    @default("pending")
+  stdout     String    @default("")
+  stderr     String    @default("")
+  exitCode   Int?
+  resultJson String    @default("")
+
+  startedAt  DateTime?
+  finishedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([status])
+}
+
+// ─────────────────────────────────────────────────────────
+// REPORTS (AITU Final Report-first workflow)
+// ─────────────────────────────────────────────────────────
+
+model ReportBugType {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  points        Int      @default(0)
+  requiredRules String   @default("[]") // JSON: [{ key, label, type, required }]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  reports Report[]
+}
+
+model ReportRisk {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String   @default("")
+  point       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  reports Report[]
+}
+
+model Report {
+  id           String   @id @default(cuid())
+  reportType   String   @default("bug_bounty") // bug_bounty | risk
+  bugTypeId    String?
+  bugType      ReportBugType? @relation(fields: [bugTypeId], references: [id], onDelete: SetNull)
+  riskId       String?
+  risk         ReportRisk? @relation(fields: [riskId], references: [id], onDelete: SetNull)
+  targetIp     String   @default("") // Required for bug_bounty
+  descriptionMd String  @default("")
+  status       String   @default("pending") // pending | submit | reject | ignore
+  notes        String   @default("")
+  submittedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  attachments ReportAttachment[]
+
+  @@index([reportType])
+  @@index([status])
+  @@index([bugTypeId])
+  @@index([riskId])
+  @@index([targetIp])
+}
+
+model ReportAttachment {
+  id            String   @id @default(cuid())
+  reportId       String
+  report         Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  fileName       String
+  localPath      String   @default("") // under ../loots/reports/
+  mimeType       String   @default("")
+  attachmentType String   @default("etc") // screenshot | text | script | log | etc
+  requirementKey String   @default("") // matches bug type required rule key
+  isFullScreen   Boolean  @default(false)
+  size           Int      @default(0)
+  notes          String   @default("")
+  createdAt      DateTime @default(now())
+
+  @@index([reportId])
+  @@index([attachmentType])
+  @@index([requirementKey])
+}

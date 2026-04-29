@@ -1,0 +1,66 @@
+{
+  "host": "198.18.0.10",
+  "services": [
+    {
+      "port": 502,
+      "open": true,
+      "protocol": "modbus",
+      "description": "Train traction control PLC",
+      "template": "modbus_tcp.py",
+      "modbus_confirmed": true
+    },
+    {
+      "port": 102,
+      "open": true,
+      "protocol": "s7comm",
+      "description": "Station process PLC",
+      "template": "s7comm_client.py"
+    },
+    {
+      "port": 1883,
+      "open": true,
+      "protocol": "mqtt",
+      "description": "Operations message bus",
+      "template": "mqtt_client.py"
+    },
+    {
+      "port": 4840,
+      "open": true,
+      "protocol": "opcua",
+      "description": "Supervisory OPC UA server",
+      "template": "opcua_client.py"
+    },
+    {
+      "port": 44818,
+      "open": true,
+      "protocol": "enip",
+      "description": "Power distribution PLC",
+      "template": "enip_client.py"
+    },
+    {
+      "port": 20000,
+      "open": true,
+      "protocol": "dnp3",
+      "description": "Substation RTU",
+      "template": "dnp3_client.py"
+    },
+    {
+      "port": 2404,
+      "open": true,
+      "protocol": "iec104",
+      "description": "Grid telecontrol endpoint",
+      "template": "iec104_client.py"
+    },
+    {
+      "port": 47808,
+      "open": true,
+      "protocol": "bacnet",
+      "description": "Business center BMS",
+      "template": "bacnet_scan.py"
+    }
+  ],
+  "next_steps": [
+    "uv run scripts/templates/modbus_tcp.py --host 198.18.0.10 --port 502 --json",
+    "uv run scripts/templates/opcua_client.py --host 198.18.0.10 --port 4840 --json"
+  ]
+}

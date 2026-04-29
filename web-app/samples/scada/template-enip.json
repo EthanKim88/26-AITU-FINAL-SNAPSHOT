@@ -1,0 +1,42 @@
+{
+  "host": "198.18.0.24",
+  "port": 44818,
+  "identity": {
+    "name": "1756-L81E",
+    "vendor": "Rockwell Automation",
+    "product_type": "ControlLogix",
+    "revision": "35.11",
+    "serial": "ABCD1234"
+  },
+  "tags": [
+    {
+      "name": "LRT_LineA_RunPermit",
+      "type": "BOOL"
+    },
+    {
+      "name": "BusinessCenter_MainFeeder",
+      "type": "BOOL"
+    },
+    {
+      "name": "EmergencyMode",
+      "type": "BOOL"
+    }
+  ],
+  "values": [
+    {
+      "tag": "LRT_LineA_RunPermit",
+      "value": false,
+      "type": "BOOL"
+    },
+    {
+      "tag": "BusinessCenter_MainFeeder",
+      "value": false,
+      "type": "BOOL"
+    },
+    {
+      "tag": "EmergencyMode",
+      "value": true,
+      "type": "BOOL"
+    }
+  ]
+}
